@@ -30,4 +30,4 @@ class Train {
     int getTrainLength() const { return length; }
 };
 
-#endif
+#endif  // INCLUDE_TRAIN_H__
