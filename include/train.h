@@ -9,9 +9,7 @@ class Train {
         Car* next;
         Car* prev;
 
-        explicit Car(bool lightState) : light(lightState),
-                                        next(nullptr),
-                                        prev(nullptr) {}
+        explicit Car(bool lightState);
     };
 
     Car* first;
@@ -25,9 +23,9 @@ class Train {
 
     void addCar(bool light);
     int getLength();
-    int getOpCount() const { return countOp; }
-    void resetOpCount() { countOp = 0; }
-    int getTrainLength() const { return length; }
+    int getOpCount() const;
+    void resetOpCount();
+    int getTrainLength() const;
 };
 
 #endif  // INCLUDE_TRAIN_H__
