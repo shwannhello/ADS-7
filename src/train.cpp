@@ -1,8 +1,8 @@
 // Copyright 2021 NNTU-CS
 #include "train.h"
 
-Train::Car::Car(bool lightState)
-    : light(lightState), next(nullptr), prev(nullptr) {}
+Train::Car::Car(bool lightState, Car* nextCar, Car* prevCar)
+    : light(lightState), next(nextCar), prev(prevCar) {}
 
 Train::Train() : countOp_(0), first_(nullptr), length_(0) {}
 
@@ -20,7 +20,7 @@ Train::~Train() {
 }
 
 void Train::addCar(bool light) {
-    Car* newCar = new Car(light);
+    Car* newCar = new Car(light, nullptr, nullptr);
 
     if (!first_) {
         first_ = newCar;
