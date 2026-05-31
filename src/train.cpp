@@ -1,88 +1,85 @@
 // Copyright 2021 NNTU-CS
 #include "train.h"
 
-Train::Car::Car(bool lightState) : light(lightState), next(nullptr), prev(nullptr) {}
-
-Train::Train() : countOp(0), first(nullptr) {}
+Train::Train() : countOp(0), first(nullptr), length(0) {}
 
 Train::~Train() {
     if (!first) return;
-    Car *current = first;
+    
+    Car* current = first;
+    Car* nextCar;
+    
     do {
-        Car *next = current->next;
+        nextCar = current->next;
         delete current;
-        current = next;
+        current = nextCar;
     } while (current != first);
 }
 
 void Train::addCar(bool light) {
-    Car *newCar = new Car(light);
+    Car* newCar = new Car(light);
     
     if (!first) {
         first = newCar;
         first->next = first;
         first->prev = first;
     } else {
-        Car *last = first->prev;
+        Car* last = first->prev;
         last->next = newCar;
         newCar->prev = last;
         newCar->next = first;
         first->prev = newCar;
     }
+    
+    length++;
 }
 
-int Train::getOpCount() {
+void Train::resetOpCount() {
+    countOp = 0;
+}
+
+int Train::getOpCount() const {
     return countOp;
+}
+
+int Train::getActualLength() const {
+    return length;
 }
 
 int Train::getLength() {
     if (!first) return 0;
     
     countOp = 0;
-    
+
     first->light = true;
-    Car *current = first;
+    Car* current = first;
     int steps = 0;
     
     while (true) {
-        while (true) {
-            current = current->next;
-            countOp++;
-            steps++;
+        current = current->next;
+        countOp++;
+        steps++;
+
+        if (!current->light) {
+            current->light = true;
+            steps = 0;
+        }
+        else {
+            Car* checker = current;
+            bool allOn = true;
+
+            for (int i = 0; i < steps; i++) {
+                checker = checker->prev;
+                countOp++;
+                if (!checker->light) {
+                    allOn = false;
+                    break;
+                }
+            }
             
-            if (!current->light) {
-                break;
+            if (allOn && steps > 0) {
+                return steps;
             }
         }
-        
-        current->light = true;
-        
-        int backSteps = 0;
-        while (backSteps < steps) {
-            current = current->prev;
-            countOp++;
-            backSteps++;
-            
-            if (current == first) {
-                Car *check = first;
-                bool allOn = true;
-                int checkSteps = 0;
-                while (checkSteps <= steps) {
-                    if (!check->light) {
-                        allOn = false;
-                        break;
-                    }
-                    check = check->next;
-                    checkSteps++;
-                }
-                
-                if (allOn) {
-                    return steps + 1;
-                }
-                break;
-            }
-        }
-        
-        steps = 0;
     }
 }
