@@ -1,6 +1,6 @@
 // Copyright 2022 NNTU-CS
-#ifndef TRAIN_H_
-#define TRAIN_H_
+#ifndef INCLUDE_TRAIN_H__
+#define INCLUDE_TRAIN_H__
 
 class Train {
  public:
@@ -27,4 +27,4 @@ class Train {
     int length_;
 };
 
-#endif  // TRAIN_H_
+#endif  // INCLUDE_TRAIN_H__
