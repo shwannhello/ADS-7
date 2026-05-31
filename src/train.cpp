@@ -1,85 +1,55 @@
 // Copyright 2021 NNTU-CS
 #include "train.h"
 
-Train::Train() : countOp(0), first(nullptr), length(0) {}
-
-Train::~Train() {
-    if (!first) return;
-    
-    Car* current = first;
-    Car* nextCar;
-    
-    do {
-        nextCar = current->next;
-        delete current;
-        current = nextCar;
-    } while (current != first);
-}
+Train::Train() : countOp(0), first(nullptr) {}
 
 void Train::addCar(bool light) {
-    Car* newCar = new Car(light);
-    
+    Car* newCar = new Car{light, nullptr, nullptr};
+
     if (!first) {
         first = newCar;
-        first->next = first;
-        first->prev = first;
-    } else {
-        Car* last = first->prev;
-        last->next = newCar;
-        newCar->prev = last;
         newCar->next = first;
+        newCar->prev = first;
+    } else {
+        newCar->next = first;
+        newCar->prev = first->prev;
+        first->prev->next = newCar;
         first->prev = newCar;
     }
-    
-    length++;
-}
-
-void Train::resetOpCount() {
-    countOp = 0;
-}
-
-int Train::getOpCount() const {
-    return countOp;
-}
-
-int Train::getActualLength() const {
-    return length;
 }
 
 int Train::getLength() {
-    if (!first) return 0;
-    
-    countOp = 0;
+    if (!first) {
+        return 0;
+    }
 
+    countOp = 0;
     first->light = true;
     Car* current = first;
-    int steps = 0;
-    
+
     while (true) {
-        current = current->next;
-        countOp++;
-        steps++;
+        int steps = 0;
 
-        if (!current->light) {
-            current->light = true;
-            steps = 0;
+        do {
+            current = current->prev;
+            countOp++;
+            steps++;
+        } while (!current->light);
+
+        current->light = false;
+
+        for (int i = 0; i < steps; ++i) {
+            current = current->next;
+            countOp++;
         }
-        else {
-            Car* checker = current;
-            bool allOn = true;
 
-            for (int i = 0; i < steps; i++) {
-                checker = checker->prev;
-                countOp++;
-                if (!checker->light) {
-                    allOn = false;
-                    break;
-                }
-            }
-            
-            if (allOn && steps > 0) {
-                return steps;
-            }
+        if (!first->light) {
+            int length = steps;
+            return length;
         }
     }
+}
+
+int Train::getOpCount() {
+    return countOp;
 }
