@@ -5,9 +5,7 @@
 #include <random>
 #include "train.h"
 
-using namespace std;
-
-Train createTrain(int length, const string& pattern) {
+Train createTrain(int length, const std::string& pattern) {
     Train train;
     
     if (pattern == "all_off") {
@@ -19,9 +17,9 @@ Train createTrain(int length, const string& pattern) {
             train.addCar(true);
         }
     } else if (pattern == "random") {
-        random_device rd;
-        mt19937 gen(rd());
-        uniform_int_distribution<> dis(0, 1);
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        std::uniform_int_distribution<> dis(0, 1);
         
         for (int i = 0; i < length; i++) {
             train.addCar(dis(gen) == 1);
@@ -32,14 +30,14 @@ Train createTrain(int length, const string& pattern) {
 }
 
 int main() {
-    vector<int> lengths;
+    std::vector<int> lengths;
     for (int n = 2; n <= 200; n += 2) {
         lengths.push_back(n);
     }
     
-    vector<pair<int, double>> results_all_off;
-    vector<pair<int, double>> results_all_on;
-    vector<pair<int, double>> results_random;
+    std::vector<std::pair<int, double>> results_all_off;
+    std::vector<std::pair<int, double>> results_all_on;
+    std::vector<std::pair<int, double>> results_random;
     
     for (int n : lengths) {
         Train train = createTrain(n, "all_off");
@@ -66,14 +64,14 @@ int main() {
         results_random.push_back({n, avgOps});
     }
     
-    ofstream outFile("result/data.csv");
-    outFile << "n,all_off,all_on,random" << endl;
+    std::ofstream outFile("result/data.csv");
+    outFile << "n,all_off,all_on,random" << std::endl;
     
     for (size_t i = 0; i < lengths.size(); i++) {
         outFile << lengths[i] << ","
                 << results_all_off[i].second << ","
                 << results_all_on[i].second << ","
-                << results_random[i].second << endl;
+                << results_random[i].second << std::endl;
     }
     outFile.close();
     
