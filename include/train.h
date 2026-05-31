@@ -1,31 +1,26 @@
 // Copyright 2022 NNTU-CS
-#ifndef INCLUDE_TRAIN_H__
-#define INCLUDE_TRAIN_H__
+#ifndef INCLUDE_TRAIN_H_
+#define INCLUDE_TRAIN_H_
 
 class Train {
  private:
-    struct Car {
-        bool light;
-        Car* next;
-        Car* prev;
-
-        explicit Car(bool lightState);
-    };
-
-    Car* first;
-    Car* startCar;
-    int countOp;
-    int length;
+  struct Car {
+    bool light;
+    Car *next;
+    Car *prev;
+  };
+  int countOp;
+  Car *first;
+  int length;
 
  public:
-    Train();
-    ~Train();
-
-    void addCar(bool light);
-    int getLength();
-    int getOpCount() const;
-    void resetOpCount();
-    int getTrainLength() const;
+  Train();
+  ~Train();
+  void addCar(bool light);
+  int getLength();
+  int getOpCount();
+  void resetOpCount();
+  int getActualLength();
 };
 
-#endif  // INCLUDE_TRAIN_H__
+#endif  // INCLUDE_TRAIN_H_
