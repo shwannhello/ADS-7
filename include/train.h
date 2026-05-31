@@ -8,19 +8,16 @@ class Train {
     bool light;
     Car *next;
     Car *prev;
+    Car(bool lightState);
   };
   int countOp;
   Car *first;
-  int length;
-
  public:
   Train();
   ~Train();
   void addCar(bool light);
   int getLength();
   int getOpCount();
-  void resetOpCount();
-  int getActualLength();
 };
 
 #endif  // INCLUDE_TRAIN_H_
