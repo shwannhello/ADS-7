@@ -1,87 +1,67 @@
 // Copyright 2021 NNTU-CS
 #include "train.h"
-
-Train::Car::Car(bool lightState, Car* nextCar, Car* prevCar)
-    : light(lightState), next(nextCar), prev(prevCar) {}
-
-Train::Train() : countOp_(0), first_(nullptr), length_(0) {}
-
+Train::Train() : countOp(0), first(nullptr), current(nullptr) {}
 Train::~Train() {
-    if (!first_) return;
-
-    Car* current = first_;
-    Car* nextCar;
-
-    do {
-        nextCar = current->next;
-        delete current;
-        current = nextCar;
-    } while (current != first_);
+    if (!first) return;
+    Car* temp = first->next;
+    while (temp != first) {
+        Car* next = temp->next;
+        delete temp;
+        temp = next;
+    }
+    delete first;
 }
-
 void Train::addCar(bool light) {
-    Car* newCar = new Car(light, nullptr, nullptr);
-
-    if (!first_) {
-        first_ = newCar;
-        first_->next = first_;
-        first_->prev = first_;
+    Car* newCar = new Car{ light, nullptr, nullptr };
+    if (!first) {
+        first = newCar;
+        first->next = first;
+        first->prev = first;
+        current = first;
     } else {
-        Car* last = first_->prev;
+        Car* last = first->prev;
         last->next = newCar;
         newCar->prev = last;
-        newCar->next = first_;
-        first_->prev = newCar;
+        newCar->next = first;
+        first->prev = newCar;
     }
-
-    length_++;
 }
-
-void Train::resetOpCount() {
-    countOp_ = 0;
-}
-
-int Train::getOpCount() const {
-    return countOp_;
-}
-
-int Train::getActualLength() const {
-    return length_;
-}
-
 int Train::getLength() {
-    if (!first_) return 0;
-
-    countOp_ = 0;
-
-    first_->light = true;
-    Car* current = first_;
-    int steps = 0;
-
-    while (true) {
-        current = current->next;
-        countOp_++;
-        steps++;
-
-        if (!current->light) {
-            current->light = true;
-            steps = 0;
-        } else {
-            Car* checker = current;
-            bool allOn = true;
-
-            for (int i = 0; i < steps; i++) {
-                checker = checker->prev;
-                countOp_++;
-                if (!checker->light) {
-                    allOn = false;
-                    break;
-                }
-            }
-
-            if (allOn && steps > 0) {
-                return steps;
+    if (!first) return 0;
+    resetOps();
+    current = first;
+    if (!current->light) {
+        current->light = true;
+    }
+    int length = 0;
+    bool found = false;
+    while (!found) {
+        while (true) {
+            current = current->next;
+            countOp++;
+            length++;
+            if (current->light) {
+                current->light = false;
+                break;
             }
         }
+        int steps = 0;
+        while (steps < length) {
+            current = current->prev;
+            countOp++;
+            steps++;
+        }
+        if (!current->light) {
+            found = true;
+        } else {
+            length = 0;
+        }
     }
+    return length;
+}
+int Train::getOpCount() {
+    return countOp;
+}
+void Train::resetOps() {
+    countOp = 0;
 }
