@@ -1,133 +1,81 @@
 // Copyright 2022 NNTU-CS
-#include "../include/train.h"
 #include <iostream>
+#include <fstream>
 #include <vector>
 #include <random>
-#include <iomanip>
-#include <fstream>
+#include "train.h"
 
 using namespace std;
 
-vector<pair<int, double>> runExperiment(
-    const vector<int>& lengths,
-    const string& distribution,
-    int experimentsPerLength = 10) {
+Train createTrain(int length, const string& pattern) {
+    Train train;
     
-    vector<pair<int, double>> results;
-    random_device rd;
-    mt19937 gen(rd());
-    uniform_int_distribution<> dis(0, 1);
-
-    cout << "\n--- Распределение: " << distribution << " ---\n";
-    
-    for (int n : lengths) {
-        long long totalOps = 0;
-        int successfulTests = 0;
-
-        for (int exp = 0; exp < experimentsPerLength; ++exp) {
-            Train train;
-
-            for (int i = 0; i < n; ++i) {
-                bool lightState;
-                if (distribution == "all_off") {
-                    lightState = false;
-                } else if (distribution == "all_on") {
-                    lightState = true;
-                } else {  // random
-                    lightState = dis(gen);
-                }
-                train.addCar(lightState);
-            }
-
-            int length = train.getLength();
-            int ops = train.getOpCount();
-            
-            if (length == n) {
-                totalOps += ops;
-                successfulTests++;
-            } else {
-                cerr << "  Предупреждение: для n=" << n 
-                     << ", получено length=" << length << endl;
-            }
+    if (pattern == "all_off") {
+        for (int i = 0; i < length; i++) {
+            train.addCar(false);
         }
-
-        double avgOps = (successfulTests > 0) ? 
-                        static_cast<double>(totalOps) / successfulTests : 0;
-        results.push_back({n, avgOps});
+    } else if (pattern == "all_on") {
+        for (int i = 0; i < length; i++) {
+            train.addCar(true);
+        }
+    } else if (pattern == "random") {
+        random_device rd;
+        mt19937 gen(rd());
+        uniform_int_distribution<> dis(0, 1);
         
-        cout << "  n=" << setw(3) << n 
-             << " | среднее операций: " << setw(8) << fixed << setprecision(1) << avgOps
-             << " | успешно: " << successfulTests << "/" << experimentsPerLength << endl;
-    }
-    
-    return results;
-}
-
-void saveToCSV(const vector<pair<int, double>>& allOff,
-               const vector<pair<int, double>>& allOn,
-               const vector<pair<int, double>>& randomDist) {
-    ofstream file("result/experiment_data.csv");
-    
-    file << "n,all_off,all_on,random\n";
-    
-    for (size_t i = 0; i < allOff.size(); ++i) {
-        file << allOff[i].first << ","
-             << allOff[i].second << ","
-             << allOn[i].second << ","
-             << randomDist[i].second << "\n";
-    }
-    
-    file.close();
-    cout << "\nДанные сохранены в result/experiment_data.csv\n";
-}
-
-void printSummary(const vector<pair<int, double>>& allOff,
-                  const vector<pair<int, double>>& allOn,
-                  const vector<pair<int, double>>& randomDist) {
-    cout << "\n\n";
-    cout << "================== СВОДНАЯ ТАБЛИЦА ==================\n";
-    cout << "   n   |  все выкл.  |  все вкл.  |  случайные  |\n";
-    cout << "-------+------------+------------+-------------+\n";
-    
-    for (size_t i = 0; i < allOff.size(); ++i) {
-        if (i % 5 == 0 || i == allOff.size() - 1) {
-            cout << "  " << setw(3) << allOff[i].first << "  |"
-                 << "  " << setw(8) << fixed << setprecision(1) << allOff[i].second << "   |"
-                 << "  " << setw(8) << fixed << setprecision(1) << allOn[i].second << "   |"
-                 << "  " << setw(9) << fixed << setprecision(1) << randomDist[i].second << "   |\n";
+        for (int i = 0; i < length; i++) {
+            train.addCar(dis(gen) == 1);
         }
     }
+    
+    return train;
 }
 
 int main() {
-    cout << "   ВЫЧИСЛИТЕЛЬНЫЙ ЭКСПЕРИМЕНТ\n";
-    cout << "   Подсчёт вагонов в кольцевом поезде\n";
-
     vector<int> lengths;
-    for (int n = 2; n <= 50; ++n) {
+    for (int n = 2; n <= 200; n += 2) {
         lengths.push_back(n);
     }
-
-    int experimentsPerLength = 20;
     
-    cout << "\nПараметры эксперимента:\n";
-    cout << "  - Диапазон длин поездов: от 2 до " << lengths.back() << "\n";
-    cout << "  - Экспериментов на каждую длину: " << experimentsPerLength << "\n";
-    cout << "  - Всего экспериментов: " << lengths.size() * experimentsPerLength * 3 << "\n\n";
+    vector<pair<int, double>> results_all_off;
+    vector<pair<int, double>> results_all_on;
+    vector<pair<int, double>> results_random;
     
-    cout << "Начинаем эксперимент...\n";
+    for (int n : lengths) {
+        Train train = createTrain(n, "all_off");
+        int ops = train.getLength();
+        results_all_off.push_back({n, (double)ops});
+    }
     
-    auto allOff = runExperiment(lengths, "all_off", experimentsPerLength);
-    auto allOn = runExperiment(lengths, "all_on", experimentsPerLength);
-    auto randomDist = runExperiment(lengths, "random", experimentsPerLength);
+    for (int n : lengths) {
+        Train train = createTrain(n, "all_on");
+        int ops = train.getLength();
+        results_all_on.push_back({n, (double)ops});
+    }
     
-    saveToCSV(allOff, allOn, randomDist);
+    for (int n : lengths) {
+        double avgOps = 0;
+        const int iterations = 10;
+        
+        for (int iter = 0; iter < iterations; iter++) {
+            Train train = createTrain(n, "random");
+            avgOps += train.getLength();
+        }
+        avgOps /= iterations;
+        
+        results_random.push_back({n, avgOps});
+    }
     
-    printSummary(allOff, allOn, randomDist);
+    ofstream outFile("result/data.csv");
+    outFile << "n,all_off,all_on,random" << endl;
     
-    cout << "\n Эксперимент успешно завершён \n";
-    cout << "\nДля построения графика импортируйте файл result/experiment_data.csv\n";
-    cout << "в Excel, Google Sheets или любой другой инструмент для визуализации.\n";
+    for (size_t i = 0; i < lengths.size(); i++) {
+        outFile << lengths[i] << ","
+                << results_all_off[i].second << ","
+                << results_all_on[i].second << ","
+                << results_random[i].second << endl;
+    }
+    outFile.close();
     
     return 0;
 }
