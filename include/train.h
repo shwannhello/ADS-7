@@ -19,7 +19,7 @@ class Train {
         Car* next;
         Car* prev;
 
-        explicit Car(bool lightState);
+        Car(bool lightState, Car* nextCar, Car* prevCar);
     };
 
     int countOp_;
