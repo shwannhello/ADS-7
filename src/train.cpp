@@ -1,7 +1,9 @@
 // Copyright 2021 NNTU-CS
 #include "train.h"
 
-Train::Train() : countOp(0), first(nullptr), length(0) {}
+Train::Car::Car(bool lightState) : light(lightState), next(nullptr), prev(nullptr) {}
+
+Train::Train() : countOp(0), first(nullptr) {}
 
 Train::~Train() {
     if (!first) return;
@@ -14,8 +16,8 @@ Train::~Train() {
 }
 
 void Train::addCar(bool light) {
-    Car *newCar = new Car{light, nullptr, nullptr};
-
+    Car *newCar = new Car(light);
+    
     if (!first) {
         first = newCar;
         first->next = first;
@@ -27,49 +29,40 @@ void Train::addCar(bool light) {
         newCar->next = first;
         first->prev = newCar;
     }
-    length++;
-}
-
-int Train::getActualLength() {
-    return length;
 }
 
 int Train::getOpCount() {
     return countOp;
 }
 
-void Train::resetOpCount() {
-    countOp = 0;
-}
-
 int Train::getLength() {
     if (!first) return 0;
-
+    
     countOp = 0;
-
+    
     first->light = true;
     Car *current = first;
     int steps = 0;
-
+    
     while (true) {
         while (true) {
             current = current->next;
             countOp++;
             steps++;
-    
+            
             if (!current->light) {
                 break;
             }
         }
-  
+        
         current->light = true;
-
+        
         int backSteps = 0;
         while (backSteps < steps) {
             current = current->prev;
             countOp++;
             backSteps++;
- 
+            
             if (current == first) {
                 Car *check = first;
                 bool allOn = true;
@@ -82,14 +75,14 @@ int Train::getLength() {
                     check = check->next;
                     checkSteps++;
                 }
-
+                
                 if (allOn) {
                     return steps + 1;
                 }
                 break;
             }
         }
-
+        
         steps = 0;
     }
 }
